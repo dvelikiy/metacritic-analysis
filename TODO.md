@@ -1,6 +1,7 @@
 # To do
-- [ ] Read Scrapy docs
-- [ ] Define data model
+- [x] Read Scrapy docs
+- [x] Define data model
+- [ ] Write selectors for each field
 - [ ] Extract raw data (html)
 - [ ] Convert data to datasets (.csv, .json)
 
