@@ -19,3 +19,7 @@ class MetacriticSpider(Spider):
             f.write(response.body)
 
 #TITLE - response.xpath('//div[@class="product_title"]/a/span[@itemprop="name"]/text()').extract()[0].strip()
+# PLATFORM - response.xpath('//span[@class="platform"]/a/span[@itemprop="device"]/text()').extract()[0].strip()
+#DATEPUBLISHED response.xpath('//span[@itemprop="datePublished"]/text()').extract()[0].strip() 
+#PUBLISHER response.xpath('//li[@class="summary_detail developer"]/span[@class="data"]/text()').extract()[0].strip()
+
