@@ -15,3 +15,7 @@ NEWSPIDER_MODULE = 'metacriticbot.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'metacriticbot (+http://www.yourdomain.com)'
+
+# Spoofing to resolve 301 redirections problem
+USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20140903 Firefox/24.0 Iceweasel/24.8.0'
+

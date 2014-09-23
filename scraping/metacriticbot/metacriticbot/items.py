@@ -7,6 +7,8 @@
 
 import scrapy
 
+USER_AGENT = "Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20140903 Firefox/24.0 Iceweasel/24.8.0"
+
 class Game(scrapy.Item):
     # define the fields for your item here like:
     # name = scrapy.Field()
@@ -17,7 +19,7 @@ class Game(scrapy.Item):
     release_date = scrapy.Field()
     publisher = scrapy.Field()
     platform = scrapy.Field()
-    maturity_rating = scrapy.Field()
+    #maturity_rating = scrapy.Field()
     genre = scrapy.Field()
     #scores
     metascore = scrapy.Field()

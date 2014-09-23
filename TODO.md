@@ -1,7 +1,7 @@
 # To do
 - [x] Read Scrapy docs
 - [x] Define data model
-- [ ] Write selectors for each field
+- [x] Write selectors for each field
 - [ ] Figure out a way to scrape ALL games
 - [ ] Extract raw data (html)
 - [ ] Convert data to datasets (.csv, .json)
