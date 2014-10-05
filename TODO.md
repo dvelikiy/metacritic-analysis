@@ -2,9 +2,8 @@
 - [x] Read Scrapy docs
 - [x] Define data model
 - [x] Write selectors for each field
-- [ ] Figure out a way to scrape ALL games
-- [ ] Extract raw data (html)
-- [ ] Convert data to datasets (.csv, .json)
+- [x] Figure out a way to scrape ALL games
+- [ ] Convert data to datasets (.csv, .json, .xls)
 
 ## Next
 - [ ] Perform analysis

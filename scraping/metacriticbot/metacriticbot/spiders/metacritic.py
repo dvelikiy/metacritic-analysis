@@ -4,6 +4,15 @@ from scrapy.http import Request
 
 from metacriticbot.items import Game
 
+#Helper functions
+def safe_extract(selector, xpath_query):
+    """
+    Helper function that extracts info from selector object
+    using the xpath query constrains. 
+    If nothing can be extracted, NA is returned.
+    """
+    val = selector.xpath(xpath_query).extract()
+    return val[0].strip() if val else 'NA'
 
 class MetacriticSpider(Spider):
     """
@@ -29,7 +38,7 @@ class MetacriticSpider(Spider):
         genres = [s.split()[1].split('_', 1)[1].replace("_", "-") for s in response.xpath('//ul[@class="genre_nav"]/li/@class').extract()]
         genre_links = ["http://www.metacritic.com/browse/games/genre/date/" + genre + "/pc" for genre in genres]
 
-        #requests = [Request(url = URL, callback = self.parse_genre) for URL in genre_links]
+        requests = [Request(url = URL, callback = self.parse_genre) for URL in genre_links]
         self.log("###INITIAL PARSING ### " + str(len(genre_links)) + " Genres IN THIS TOTAL LIST")
         return requests
 
@@ -53,17 +62,21 @@ class MetacriticSpider(Spider):
         return requests
 
     def parse_game(self, response):
+        sel = Selector(response, type = 'html')
         game = Game()
         # General info
-        game['title'] = response.xpath('//div[@class="product_title"]/a/span[@itemprop="name"]/text()').extract()[0].strip()
+        game['title'] = safe_extract(sel, '//div[@class="product_title"]/a/span[@itemprop="name"]/text()')
         game['link'] = response.url
-        game['release_date'] = response.xpath('//span[@itemprop="datePublished"]/text()').extract()[0].strip()
-        game['publisher'] = response.xpath('//li[@class="summary_detail developer"]/span[@class="data"]/text()').extract()[0].strip()
-        game['platform'] = response.xpath('//span[@class="platform"]/a/span[@itemprop="device"]/text()').extract()[0].strip()
-        #maturity_rating = scrapy.Field()
-        game['genre'] = response.meta['genre'] 
+        game['release_date'] = safe_extract(sel, '//span[@itemprop="datePublished"]/text()')
+        game['developer'] = safe_extract(sel, '//li[@class="summary_detail developer"]/span[@class="data"]/text()')
+        game['publisher'] = safe_extract(sel, '//li[@class="summary_detail publisher"]/span[@class="data"]/a/span/text()')
+        game['platform'] = safe_extract(sel, '//span[@class="platform"]/a/span[@itemprop="device"]/text()')
+        game['maturity_rating'] = safe_extract(sel, '//span[@itemprop="contentRating" and @class="data"]/text()')
+        game['genre'] = response.meta['genre'] #Getting genre from original 18 genre-like sections
+        game['genre_tags'] = safe_extract(sel, '//span[@itemprop="genre" and @class="data"]/text()')
         #scores
-        game['metascore'] = response.xpath('//span[@itemprop="ratingValue"]/text()').extract()[0].strip()
-        game['critics_reviews_count'] = response.xpath('//span[@itemprop="reviewCount"]/text()').extract()[0].strip()
-        game['user_score'] = response.xpath('//div[@class="userscore_wrap feature_userscore"]/a/div/text()').extract()[0].strip()
-        game['user_reviews_count'] = response.xpath('//div[@class="userscore_wrap feature_userscore"]/div/p/span/a/text()').extract()[0].strip()
+        game['metascore'] = safe_extract(sel, '//span[@itemprop="ratingValue"]/text()')
+        game['critics_reviews_count'] = safe_extract(sel, '//span[@itemprop="reviewCount"]/text()')
+        game['user_score'] = safe_extract(sel, '//div[@class="userscore_wrap feature_userscore"]/a/div/text()')
+        game['user_reviews_count'] = safe_extract(sel, '//div[@class="userscore_wrap feature_userscore"]/div/p/span/a/text()')
+        yield game

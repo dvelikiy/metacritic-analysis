@@ -17,10 +17,12 @@ class Game(scrapy.Item):
     title = scrapy.Field()
     link = scrapy.Field()
     release_date = scrapy.Field()
+    developer = scrapy.Field()
     publisher = scrapy.Field()
     platform = scrapy.Field()
-    #maturity_rating = scrapy.Field()
+    maturity_rating = scrapy.Field()
     genre = scrapy.Field()
+    genre_tags = scrapy.Field()
     #scores
     metascore = scrapy.Field()
     critics_reviews_count = scrapy.Field()
