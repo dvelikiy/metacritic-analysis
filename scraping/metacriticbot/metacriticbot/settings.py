@@ -22,5 +22,6 @@ USER_AGENT = 'Mozilla/5.0 (X11; Linux i686; rv:24.0) Gecko/20140903 Firefox/24.0
 #Pipelines. Some data cleaning.
 ITEM_PIPELINES = {
     'metacriticbot.pipelines.MetacriticbotPipeline': 100,
+    'metacriticbot.pipelines.XlsExportPipeline': 200,
 }
 

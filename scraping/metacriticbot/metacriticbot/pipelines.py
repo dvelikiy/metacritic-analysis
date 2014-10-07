@@ -4,7 +4,10 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
+from scrapy.xlib.pydispatch import dispatcher
+from scrapy import signals
 from datetime import datetime
+import xlwt
 
 class MetacriticbotPipeline(object):
     def process_item(self, item, spider):
@@ -20,4 +23,27 @@ class MetacriticbotPipeline(object):
             item['release_date'] = datetime.strptime(item['release_date'], '%b %d, %Y').strftime('%Y-%m-%d')
         #leave only N out of "N Ratings" for user ratings
         item['user_reviews_count'] = item['user_reviews_count'].split()[0]
+        return item
+ 
+class XlsExportPipeline(object):
+
+    def __init__(self):
+        dispatcher.connect(self.spider_opened, signals.spider_opened)
+        dispatcher.connect(self.spider_closed, signals.spider_closed)
+        self.workbook = xlwt.Workbook()
+        self.sheet = self.workbook.add_sheet("Metacritic") 
+        self.row_number = 0
+    #write header
+    def spider_opened(self, spider, item):
+        keys = item.keys() #item.keys to get field names
+        for index, key in enumerate(keys):
+            self.sheet.write(self.row_number, index, key) # row, column, value
+        
+    def spider_closed(self, spider):
+        self.workbook.save("metacritic.xls") 
+    def process_item(self, item, spider):
+        self.row_number = self.row_number + 1
+        values = item.values()
+        for index, val in enumerate(values):
+            self.sheet.write(self.row_number, index, val) # row, column, value
         return item
