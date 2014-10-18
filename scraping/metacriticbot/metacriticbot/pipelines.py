@@ -8,6 +8,10 @@ from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
 from datetime import datetime
 import xlwt
+from scrapy.utils.project import get_project_settings
+import os
+
+settings = get_project_settings()
 
 class MetacriticbotPipeline(object):
     def process_item(self, item, spider):
@@ -40,7 +44,11 @@ class XlsExportPipeline(object):
             self.sheet.write(self.row_number, index, key) # row, column, value
         
     def spider_closed(self, spider):
-        self.workbook.save("metacritic.xls") 
+        timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
+        relpath = settings.get('RELPATH')
+        xls_fname = os.path.join(relpath, 'data', "metacritic-" + timestr + ".xls")
+        self.workbook.save(xls_fname) 
+
     def process_item(self, item, spider):
         self.row_number = self.row_number + 1
         values = item.values()
