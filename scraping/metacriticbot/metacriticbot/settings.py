@@ -35,7 +35,7 @@ RELPATH = str.join(os.sep, components[:components.index("metacritic-analysis")+1
 FEED_URI = os.path.join(RELPATH, 'data', '%(name)s-%(time)s.csv')
        #os.path.join(relpath, 'data', '%(name)s-%(time)s.json')
        # ]
-#FEED_FORMAT
+FEED_FORMAT = 'csv'
 
 #Logging
 timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
