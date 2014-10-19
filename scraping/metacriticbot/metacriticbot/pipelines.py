@@ -6,10 +6,11 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 from scrapy.xlib.pydispatch import dispatcher
 from scrapy import signals
-from datetime import datetime
 import xlwt
+from datetime import datetime
 from scrapy.utils.project import get_project_settings
 import os
+from metacriticbot.items import Game
 
 settings = get_project_settings()
 
@@ -38,13 +39,14 @@ class XlsExportPipeline(object):
         self.sheet = self.workbook.add_sheet("Metacritic") 
         self.row_number = 0
     #write header
-    def spider_opened(self, spider, item):
-        keys = item.keys() #item.keys to get field names
+    def spider_opened(self, spider):
+        item = Game()
+        keys = item.fields.keys() #item.keys to get field names
         for index, key in enumerate(keys):
             self.sheet.write(self.row_number, index, key) # row, column, value
         
     def spider_closed(self, spider):
-        timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
+        timestr = settings.get('TIMESTR')
         relpath = settings.get('RELPATH')
         xls_fname = os.path.join(relpath, 'data', "metacritic-" + timestr + ".xls")
         self.workbook.save(xls_fname) 

@@ -28,19 +28,18 @@ ITEM_PIPELINES = {
 }
 
 # Feed Exports
+TIMESTR = datetime.now().strftime("%Y%m%d-%H%M%S")
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 components = cur_dir.split(os.sep)
 RELPATH = str.join(os.sep, components[:components.index("metacritic-analysis")+1])
 
-FEED_URI = os.path.join(RELPATH, 'data', '%(name)s-%(time)s.csv')
+FEED_URI = os.path.join(RELPATH, 'data', '%(name)s-' + TIMESTR + '.csv')
        #os.path.join(relpath, 'data', '%(name)s-%(time)s.json')
        # ]
 FEED_FORMAT = 'csv'
 
 #Logging
-timestr = datetime.now().strftime("%Y%m%d-%H%M%S")
-logname = "log-" + timestr + ".log" 
-
+logname = "log-" + TIMESTR + ".log" 
 LOG_FILE = os.path.join(RELPATH, 'data', logname)
 
 
