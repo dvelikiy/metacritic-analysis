@@ -1,0 +1,42 @@
+# Exploratory analysis of game data from metacritic.com
+```{r setoptions, echo=FALSE}
+opts_chunk$set(echo=TRUE)
+```
+
+### Loading the data
+```{r loaddata}
+games <- read.csv('../data/metacritic-20141019-152743.csv', na.strings="NA",
+                  colClasses=c(release_date="Date"))
+```
+
+
+### Basic properties of a dataset
+```{r basicproperties, results='markup'}
+library(xtable)
+
+str(games)
+summary(games)
+hist(games$release_date, breaks = 'years')
+```
+
+## Exploratory analysis
+### Who gives better score on average: users or critics?
+```{r scoreshist, results = 'asis'}
+d1 <- density(games$metascore) 
+d2 <- density(games$user_score, na.rm=T)
+plot(range(d1$x, d2$x), range(d1$y, d2$y), type = "n", xlab = "Score", ylab="Density")
+lines(d1, col = "red")
+lines(d2, col = "blue")
+legend(x= 10, y=0.01, legend = c("metascore", "user_score"), col=c("red", "blue"), lwd=2, lty=1)
+```
+
+### How do mean scores vary across years?
+```{r meanscorebydate, results='asis', warning = FALSE, message = FALSE}
+mean_scores_by_date <- aggregate(cbind(metascore, user_score) ~ format(release_date, "%Y"), data = games, mean) 
+names(mean_scores_by_date)[1] <- "Year"
+library(reshape2)
+mdf <- melt(mean_scores_by_date, value.name = "Score", variable.name = "Year")
+ggplot(data=mdf, aes(x=Year, y=value, group = variable, fill = variable)) + 
+geom_bar(stat = 'identity', position = 'dodge') + coord_cartesian(ylim = c(60, 100)) + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
