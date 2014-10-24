@@ -107,18 +107,59 @@ lines(d2, col = "blue")
 legend(x= 10, y=0.01, legend = c("metascore", "user_score"), col=c("red", "blue"), lwd=2, lty=1)
 ```
 
-![plot of chunk scoreshist](figure/scoreshist.png) 
+![plot of chunk scoresdens](figure/scoresdens.png) 
 
-### How do mean scores vary across years?
+### How do mean and median scores vary across years?
 
 ```r
-mean_scores_by_date <- aggregate(cbind(metascore, user_score) ~ format(release_date, "%Y"), data = games, mean) 
-names(mean_scores_by_date)[1] <- "Year"
+mean_scores_by_date <- aggregate(cbind(metascore, user_score) ~ 
+                                 format(release_date, "%Y"), data = games, mean) 
+names(mean_scores_by_date)[1] <- "year"
 library(reshape2)
-mdf <- melt(mean_scores_by_date, value.name = "Score", variable.name = "Year")
-ggplot(data=mdf, aes(x=Year, y=value, group = variable, fill = variable)) + 
+library(ggplot2)
+mdf <- melt(mean_scores_by_date, value.name = "mean_score")
+ggplot(data=mdf, aes(x=year, y=mean_score, group = variable, fill = variable)) + 
 geom_bar(stat = 'identity', position = 'dodge') + coord_cartesian(ylim = c(60, 100)) + 
 theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-![plot of chunk meanscorebydate](figure/meanscorebydate.png) 
+![plot of chunk meanmedscorebydate](figure/meanmedscorebydate1.png) 
+
+```r
+sum_score_count_by_date <- aggregate(cbind(critics_reviews_count, user_reviews_count) ~
+                                 format(release_date, "%Y"), data = games, sum) 
+names(sum_score_count_by_date)[1] <- "year"
+mdf <- melt(sum_score_count_by_date, value.name = "sum_score_count")
+ggplot(data=mdf, aes(x=year, y=sum_score_count, group = variable, fill = variable)) + 
+geom_bar(stat = 'identity', position = 'dodge') + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+![plot of chunk meanmedscorebydate](figure/meanmedscorebydate2.png) 
+
+```r
+median_scores_by_date <- aggregate(cbind(metascore, user_score) ~ 
+                                 format(release_date, "%Y"), data = games, median) 
+names(median_scores_by_date)[1] <- "year"
+mdf <- melt(median_scores_by_date, value.name = "median_score")
+ggplot(data=mdf, aes(x=year, y=median_score, group = variable, fill = variable)) + 
+geom_bar(stat = 'identity', position = 'dodge') + coord_cartesian(ylim = c(65, 100)) + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+![plot of chunk meanmedscorebydate](figure/meanmedscorebydate3.png) 
+
+### How do median scores vary across genres?
+
+```r
+median_scores_by_genre <- aggregate(cbind(metascore, user_score) ~ 
+                                 genre, data = games, median) 
+names(median_scores_by_genre)[1] <- "genre"
+mdf <- melt(median_scores_by_genre, value.name = "median_score")
+ggplot(data=mdf, aes(x=sapply(strsplit(as.character(genre), " "), "[[", 2), 
+                     y=median_score, group = variable, colour = variable)) + 
+geom_line(stat = 'identity', position = 'dodge') + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+![plot of chunk medscoresbygenre](figure/medscoresbygenre.png) 
