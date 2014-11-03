@@ -1,0 +1,90 @@
+# Описательный анализ данных Metacritic
+```{r setoptions, echo=FALSE}
+opts_chunk$set(echo=FALSE)
+opts_chunk$set(results='asis')
+opts_chunk$set(warning = FALSE)
+opts_chunk$set(message = FALSE)
+```
+
+```{r loaddata}
+library(modeest)
+library(reshape2)
+library(ggplot2)
+library(lubridate)
+games <- read.csv('../../data/metacritic-20141019-152743.csv', na.strings="NA",
+                  colClasses=c(release_date="Date"))
+```
+```{r crossectional}
+sum_score_count_by_date <- aggregate(cbind(critics_reviews_count, user_reviews_count) ~
+                                                                      format(release_date, "%Y"), data = games, sum) 
+names(sum_score_count_by_date)[1] <- "year"
+
+median_scores_by_genre <- aggregate(cbind(metascore, user_score) ~ 
+                                 genre, data = games, median) 
+names(median_scores_by_genre)[1] <- "genre"
+msbgdiff <- transform(median_scores_by_genre, scorediff = abs(metascore-user_score), metascore=NULL, user_score=NULL)
+max(msbg$scorediff)
+maxmsbgdiff <- msbg$genre[which.max(t$scorediff)]
+maxmsbgdiff = `r unlist(strsplit(as.character(maxmsbgdiff), " "))[2]`
+```
+
+## Аннотация
+## Введение
+
+Интернет-проект Metacritic (http://www.metacritic.com) является одним из сайтов, публикующих сводные рейтинги компьютерных и видеоигр. 
+Выбор Metacritic в качестве объекта исследования обусловлен использованием его рейтингов в сервисах цифровой дистрибуции (Steam, Amazon и т.д.), 
+в том числе в их рекомендательных движках, что может определять потребительский выбор. 
+Кроме того, в случае, если данные Metacritic репрезентативны относительно популяции игроков и игровых критиков,
+их можно рекомендовать к изучению в исследованиях мнений игроков и т.п.
+Система агрегирования оценок на Metacritic предполагает выставление каждой игре двух оценок: оценки критиков (metascore),
+рассчитывающейся как взвешенное среднее оценок, выставвленных профессиональными рецензентами игровых медиа. 
+Причем алгоритм распределения весов и метод вычленения численных оценок из текстов, в которых нет численной оценки, не описаны в публичном доступе. 
+Вторая оценка &mdash; это оценка пользователей (user score), рассчитывающаяся как среднее арифметическое оценок, введенных зарегистрированными пользователями Metacritic. 
+Подобная методика далека от прозрачности, математической точности и универсальности, декларируемой разработчиками Metacritic. 
+Целью данного исследования является описательный анализ и визуализация данных Metacritic из категории "Игры для ПК" (PC Games), 
+выбранной для исследования ввиду наибольшей длительности жизненного цикла ПК как игровой платформы. 
+Данные рассматриваются в разрезе по времени, по игровому жанру и др., сравниваются оценки пользователей и критиков, выявляются закономерности.
+Предпосылкой исследования являются две гипотезы: первая &mdash; что в большинстве случае оценки критиков и оценки пользователей значительно расходятся, 
+и вторая &mdash; что в среднем пользователи оценивают игры, выпущенные до 2000 года выше игр, выпущенных после этой даты.
+Тире &mdash; тире.
+
+## Методы исследования
+
+Сбор данных с сайта www.metacritic.com был произведён 19 октября 2014 года с помощью фреймворка Scrapy.
+Для каждой игры были извлечены: название, оценка пользователей, количество оценок пользователей, оценка критиков, количество оценок критиков, 
+издатель, год издания, разработчик, платформа, жанр, тэги, возрастной рейтинг, ссылка.
+Затем полученные данные обрабатывались средствами описательной статистики языка программирования R.
+Исходный код для извлечения и анализа данааых доступны по адресу: is.gd/metacritic_code; набор данных в формате, поддерживаемом MS Excel, 
+по адресу is.gd/metacritic_xls.
+
+## Результаты
+
+Общее число игр, представленных на Metacritic для платформы "Персональный компьютер", составляет `r nrow(games)`.
+Как оценки пользователей (мода = `r mfv(games$user_score)[1]`), так и оценки критиков (мода = `r mfv(games$metascore)[1]`) 
+не являются нормально распределенными согласно критерию Шапиро-Уилка.
+По годам игры распределены неравномерно: в 1994 представлена одна игра, в 2013 достигнут максимум &mdash; `r max(table(year(games$release_date)))` игры.
+Число оценок растет от года к году: от `r min(sum_score_count_by_date$user_reviews_count)` ОП и `r min(sum_score_count_by_date$critics_reviews_count)` ОК в 1994 
+до `r max(sum_score_count_by_date$user_reviews_count)` ОП и `r max(sum_score_count_by_date$critics_reviews_count)` ОК в 2013. 
+В одномерной линейной модели год издания значимо связан с оценками пользователей (P < 0.0001), с коэф. B = `r coef(with(games, lm(user_score ~ year(release_date))))[2]` 
+и R^2 = `r round(summary.lm(with(games, lm(user_score ~ year(release_date))))$r.squared, digits=3)*100`%.
+Таким образом, чем раньше выпущена игра, тем выше её оценивают пользователи.
+```{r scorediffperc}
+underrated <- sum(games$metascore < games$user_score, na.rm = TRUE)
+overrated <- sum(games$metascore > games$user_score, na.rm = TRUE)
+equal <- sum(games$metascore == games$user_score, na.rm = TRUE)
+na <- sum(is.na(games$metascore > games$user_score))
+underratedperc <- round(underrated/(underrated+equal+overrated+na), digits=2)*100
+overratedperc <- round(overrated/(underrated+equal+overrated+na), digits=2)*100
+equalperc <- round(equal/(underrated+equal+overrated+na), digits=2)*100
+naperc <- round(na/(underrated+equal+overrated+na), digits=2)*100
+```
+Наблюдается существенная разница между медианой оценок пользователей и медианой оценок критиков.
+В целом, пользователи оценили `r underratedperc`% игр выше, чем критики, `r overratedperc`% ниже, чем критики, и в `r equalperc`% случаев оценки сравнялись 
+(`r naperc`% приходится на случаи, где отсутствует одна или обе оценки).
+По жанрам также наблюдается разница между ОП и ОК, причем максимальная разница достигнута для жанра `r maxmsbgdiff` и составляет `r max(msbgdiff$scorediff)`.
+
+
+
+
+## Заключение
+## Список литературы
