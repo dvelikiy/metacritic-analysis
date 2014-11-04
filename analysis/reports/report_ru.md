@@ -1,42 +1,9 @@
 # Описательный анализ данных Metacritic
-```{r setoptions, echo=FALSE}
-opts_chunk$set(echo=FALSE)
-opts_chunk$set(results='asis')
-opts_chunk$set(warning = FALSE)
-opts_chunk$set(message = FALSE)
-opts_chunk$set(fig.height = 5)
-```
 
-```{r loaddata}
-library(modeest)
-library(reshape2)
-library(ggplot2)
-library(lubridate)
-games <- read.csv('../../data/metacritic-20141019-152743.csv', na.strings="NA",
-                  colClasses=c(release_date="Date"))
-```
-```{r scorediffperc}
-underrated <- sum(games$metascore < games$user_score, na.rm = TRUE)
-overrated <- sum(games$metascore > games$user_score, na.rm = TRUE)
-equal <- sum(games$metascore == games$user_score, na.rm = TRUE)
-na <- sum(is.na(games$metascore > games$user_score))
-underratedperc <- round(underrated/(underrated+equal+overrated+na), digits=2)*100
-overratedperc <- round(overrated/(underrated+equal+overrated+na), digits=2)*100
-equalperc <- round(equal/(underrated+equal+overrated+na), digits=2)*100
-naperc <- round(na/(underrated+equal+overrated+na), digits=2)*100
-```
-```{r crossectional}
-sum_score_count_by_date <- aggregate(cbind(critics_reviews_count, user_reviews_count) ~
-                                                                      format(release_date, "%Y"), data = games, sum) 
-names(sum_score_count_by_date)[1] <- "year"
 
-median_scores_by_genre <- aggregate(cbind(metascore, user_score) ~ 
-                                 genre, data = games, median) 
-names(median_scores_by_genre)[1] <- "genre"
-msbgdiff <- transform(median_scores_by_genre, scorediff = abs(metascore-user_score), metascore=NULL, user_score=NULL)
-maxmsbgdiff <- msbgdiff$genre[which.max(msbgdiff$scorediff)]
-maxmsbgdiff <- unlist(strsplit(as.character(maxmsbgdiff), " "))[2]
-```
+
+
+
 
 ## Аннотация
 
@@ -61,6 +28,7 @@ maxmsbgdiff <- unlist(strsplit(as.character(maxmsbgdiff), " "))[2]
 Данные рассматриваются в разрезе по времени, по игровому жанру и др., сравниваются оценки пользователей и критиков, выявляются закономерности.
 Предпосылкой исследования являются две гипотезы: первая &mdash; что в большинстве случае оценки критиков и оценки пользователей значительно расходятся, 
 и вторая &mdash; что в среднем пользователи оценивают игры, выпущенные до 2000 года выше игр, выпущенных после этой даты.
+Тире &mdash; тире.
 
 ## Методы исследования
 
@@ -73,50 +41,25 @@ maxmsbgdiff <- unlist(strsplit(as.character(maxmsbgdiff), " "))[2]
 
 ## Результаты
 
-Общее число игр, представленных на Metacritic для платформы "Персональный компьютер", составляет `r nrow(games)`.
-Как оценки пользователей (мода = `r mfv(games$user_score)[1]`), так и оценки критиков (мода = `r mfv(games$metascore)[1]`) 
+Общее число игр, представленных на Metacritic для платформы "Персональный компьютер", составляет 3031.
+Как оценки пользователей (мода = 84), так и оценки критиков (мода = 77) 
 не являются нормально распределёнными согласно критерию Шапиро-Уилка.
-По годам игры распределены неравномерно: в 1994 представлена одна игра, в 2013 достигнут максимум &mdash; `r max(table(year(games$release_date)))` игры.
-Число оценок растёт от года к году: от `r min(sum_score_count_by_date$user_reviews_count)` ОП и `r min(sum_score_count_by_date$critics_reviews_count)` ОК в 1994 
-до `r max(sum_score_count_by_date$user_reviews_count)` ОП и `r max(sum_score_count_by_date$critics_reviews_count)` ОК в 2013. 
-В одномерной линейной модели год издания значимо связан с оценками пользователей (P < 0.0001), с коэф. B = `r coef(with(games, lm(user_score ~ year(release_date))))[2]` 
-и R^2 = `r round(summary.lm(with(games, lm(user_score ~ year(release_date))))$r.squared, digits=3)*100`%.
+По годам игры распределены неравномерно: в 1994 представлена одна игра, в 2013 достигнут максимум &mdash; 303 игры.
+Число оценок растёт от года к году: от 215 ОП и 5 ОК в 1994 
+до 91369 ОП и 5112 ОК в 2013. 
+В одномерной линейной модели год издания значимо связан с оценками пользователей (P < 0.0001), с коэф. B = -0.7634 
+и R^2 = 5.5%.
 Таким образом, чем раньше выпущена игра, тем выше её оценивают пользователи (см рис.1).
-```{r medianscorebydate}
-median_scores_by_date <- aggregate(cbind(metascore, user_score) ~ 
-                                   format(release_date, "%Y"), data = games, median) 
-names(median_scores_by_date)[1] <- "year"
-mdf <- melt(median_scores_by_date, value.name = "median_score")
-ggplot(data=mdf, aes(x=year, y=median_score)) + 
-geom_point(aes(shape=variable), size=5) + coord_cartesian(ylim = c(65, 100)) + 
-theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-xlab("Год") + ylab("Медиана оценки") + ggtitle("Медиана оценок критиков \n и медиана оценок пользователей по годам")
-```
+![plot of chunk medianscorebydate](figure/medianscorebydate.png) 
 Наблюдается существенная разница между медианой оценок пользователей и медианой оценок критиков.
-В разрезе по жанрам максимальная разница наблюдается для жанра `r maxmsbgdiff` и составляет `r max(msbgdiff$scorediff)` баллов.
-В разрезе по издателям также имеется расхождение между ОП и ОК; на рис. 2 показана разница между медианами ОП и ОК для 30 издателей из верхней квартили 
-по числу ОП (т.е. издателей, игры которых получили наибольшее внимание пользователей Metacritic).
-```{r scorediffbytoppubs}
-toppubs <- aggregate(user_reviews_count ~ publisher, data=games, 
-                     quantile, probs=0.75)
-top30pubs <- head(toppubs[order(toppubs$user_reviews_count, decreasing=TRUE),], 
-                  n=30)
-median_scores_by_publisher <- aggregate(cbind(metascore, user_score) ~ 
-                                 publisher, data = games, median) 
-names(median_scores_by_publisher)[1] <- "publisher"
-median_diff_top_pubs <- median_scores_by_publisher[median_scores_by_publisher$publisher %in% top30pubs$publisher,]
-t <- transform(median_diff_top_pubs, scorediff = metascore-user_score, metascore=NULL, user_score=NULL)
-t <- transform(t, publisher=reorder(publisher, -scorediff))#t[order(t$scorediff, decreasing=T),]
-ggplot(data=t, aes(x=publisher,y=scorediff)) + geom_bar(stat="identity") + 
-theme_bw() + theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-xlab("Издатель") + ylab("Медиана ОК - Медиана ОП") + ggtitle("Медиана оценок критиков - медиана оценок пользователей")
-```
-```{r scorediffbygames}
-score_diff_by_games <- transform(games, scorediff = abs(metascore-user_score))[,c("title", "scorediff")]
-```
-5 игр, ОК и ОП которых больше всего расходятся: `r toString(score_diff_by_games[order(-score_diff_by_games$scorediff),]$title[1:5])`.
-В целом, пользователи оценили `r underratedperc`% игр выше, чем критики, `r overratedperc`% ниже, чем критики, и в `r equalperc`% случаев оценки сравнялись 
-(`r naperc`% приходится на случаи, где отсутствует одна или обе оценки).
+В разрезе по жанрам максимальная разница наблюдается для жанра Sports и составляет 7 баллов.
+В разрезе по издателям также имеется расхождение между ОП и ОК; на рис. 1 представлена разница между медианами ОП и ОК для 30 издателей из верхней квартили 
+по числу оценок пользователей (т.е. издателей, игры которых получили наибольшее внимание пользователей Metacritic).
+![plot of chunk scorediffbytoppubs](figure/scorediffbytoppubs.png) 
+
+5 игр, ОК и ОП которых больше всего расходятся: Out of the Park Baseball 2007, Navy SEALs: Weapons of Mass Destruction, Company of Heroes 2, Gods and Generals, Out of the Park Baseball 6.
+В целом, пользователи оценили 48% игр выше, чем критики, 40% ниже, чем критики, и в 4% случаев оценки сравнялись 
+(8% приходится на случаи, где отсутствует одна или обе оценки).
 
 ## Заключение
 
