@@ -10,6 +10,26 @@ widgets     : []            # {mathjax, quiz, bootstrap}
 mode        : selfcontained # {standalone, draft, selfcontained}
 ---
 
+```{r setoptions, echo=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE)
+opts_chunk$set(results='asis')
+opts_chunk$set(warning = FALSE)
+opts_chunk$set(message = FALSE)
+#opts_chunk$set(fig.height = 5)
+opts_chunk$set(cache=FALSE) 
+#options(device = "cairo_pdf") #otherwise tons of warnings
+opts_chunk$set(dev='svg')
+```
+
+```{r loaddata}
+library(modeest)
+library(reshape2)
+library(ggplot2)
+library(lubridate)
+games <- read.csv('../../data/metacritic-20141019-152743.csv', na.strings="NA",
+                  colClasses=c(release_date="Date"))
+```
 <style>
 .title-slide {
   background-color: #FFFFFF; /* #EDE0CF; ; #CA9F9D*/
@@ -42,11 +62,6 @@ $(function() {
 - Оценка пользователей (user score) = среднее арифметическое
 - Оценка критиков (metascore) = взвешенное среднее
 
----
-## Гипотезы
-1. ОП и ОК значительно расходятся в большинстве случаев
-2. В среднем, чем раньше выпущена игра, тем выше её оценка
-
 --- #custbg 
 <style>
 #custbg {
@@ -58,3 +73,64 @@ $(function() {
 }
 </style>
 ## Сбор данных
+
+---
+## Гипотезы
+1. ОП и ОК значительно расходятся в большинстве случаев
+2. В среднем, чем раньше выпущена игра, тем выше её оценка
+
+---
+## Распределение оценок
+```{r scoresdens}
+d1 <- density(games$metascore) 
+d2 <- density(games$user_score, na.rm=T)
+plot(range(d1$x, d2$x), range(d1$y, d2$y), type = "n", xlab = "Оценка", 
+     ylab="Плотность", cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5)
+lines(d1, col = "red")
+lines(d2, col = "blue")
+legend(x= 5, y=0.025, legend = c("Оценка критиков", "Оценка пользователей"), 
+       col=c("red", "blue"), lwd=2, lty=1)
+```
+
+---
+## Медианы оценок по годам
+```{r medianscoresbydate, fig.width=10}
+median_scores_by_date <- aggregate(cbind(metascore, user_score) ~ 
+                                 format(release_date, "%Y"), data = games, median) 
+names(median_scores_by_date)[1] <- "year"
+mdf <- melt(median_scores_by_date, value.name = "median_score")
+coef <- with(games, lm(user_score ~ year(release_date)))$coefficients
+ggplot(data=mdf, aes(x=year, y=median_score, group = variable, color = variable)) + 
+geom_line() +# stat_smooth(method="lm", se=FALSE)+
+coord_cartesian(ylim = c(65, 100)) + theme_bw() + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1, size=15)) + 
+xlab("Год") + ylab("Медиана оценки") + 
+ggtitle("Медиана оценок критиков \n и медиана оценок пользователей по годам")
+```
+
+---
+## Медиана ОК - Медиана ОП
+```{r scorediffbytoppubs, fig.width=10}
+toppubs <- aggregate(user_reviews_count ~ publisher, data=games, 
+                                          quantile, probs=0.75)
+top30pubs <- head(toppubs[order(toppubs$user_reviews_count, decreasing=TRUE),], 
+                                    n=30)
+median_scores_by_publisher <- aggregate(cbind(metascore, user_score) ~ 
+                                                                         publisher, data = games, median) 
+names(median_scores_by_publisher)[1] <- "publisher"
+median_diff_top_pubs <- median_scores_by_publisher[median_scores_by_publisher$publisher %in% top30pubs$publisher,]
+t <- transform(median_diff_top_pubs, scorediff = metascore-user_score, metascore=NULL, user_score=NULL)
+t <- transform(t, publisher=reorder(publisher, -scorediff))#t[order(t$scorediff, decreasing=T),]
+ggplot(data=t, aes(x=publisher,y=scorediff)) + geom_bar(stat="identity") + 
+theme_bw() + theme(axis.text.x = element_text(angle = 60, hjust = 1, size = 15)) +
+xlab("Издатель") + ylab("Медиана ОК - Медиана ОП") + ggtitle("Медиана оценок критиков - медиана оценок пользователей")
+```
+
+---
+## Распределение разности между ОК и ОП
+```{r scorediffdistrib}
+score_difference <- transform(games, scorediff = metascore-user_score, 
+metascore=NULL, user_score=NULL)
+plot(density(na.omit(score_difference$scorediff)), xlab = "ОК-ОП", ylab="Плотность",
+     main="", cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, lwd=2)
+```
