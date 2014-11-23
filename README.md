@@ -19,10 +19,11 @@ Done using R language.
 # Examples of usage:
 * to scrape data yourself - run `scrapy crawl metacritic` from within /scraping/metacriticbot. 
 See Scrapy documentation [here](http://scrapy.org/). 
+Some of the scraped fields: ![scraped](http://i.imgur.com/A5CBHZ6.png)
 * to get already scraped dataset - http://is.gd/metacritic_xls
 * to see results of an analysis - [raw](https://github.com/codenotfound/metacritic-analysis/blob/master/analysis/raw/metacritic-analysis.md)
-[report (russian)](https://github.com/codenotfound/metacritic-analysis/blob/master/analysis/reports/report_ru.md)
-[conference slides (russian)](https://rpubs.com/dmitry/metacritic-analysis)
+ | [report (russian)](https://github.com/codenotfound/metacritic-analysis/blob/master/analysis/reports/report_ru.md)
+ | [conference slides (russian)](https://rpubs.com/dmitry/metacritic-analysis)
 
 ### Requirements to run code:
 Python
