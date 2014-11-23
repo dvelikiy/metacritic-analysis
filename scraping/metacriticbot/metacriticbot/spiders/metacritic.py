@@ -17,14 +17,12 @@ def safe_extract(selector, xpath_query):
 class MetacriticSpider(Spider):
     """
     Goal: Scrape all PC games
-    0. Probably create dictionary that maps short genre names with long genre names.
     1. Start with "action" genre: start_url = "http://www.metacritic.com/browse/games/genre/date/action/pc"
     2. Get links for every genre page
     3. Get links for page 1..n for genre
-    4. Need variable to store genre name
-    5. Take "genre" field from sidebar in game list, other fields from game page itself.
-    6. Go to next genre.
-    7. Repeat.
+    4. Take "genre" field from sidebar in game list, other fields from game page itself.
+    5. Go to next genre.
+    6. Repeat.
     """
     name = "metacritic"
     allowed_domains = ["metacritic.com"]
