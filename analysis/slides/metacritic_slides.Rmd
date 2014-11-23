@@ -93,6 +93,25 @@ legend(x= 5, y=0.025, legend = c("Оценка критиков", "Оценка 
 ```
 
 ---
+## Число игр по годам
+```{r sumgamecountbydate}
+hist(games$release_date, breaks = 'years', freq=T, xlab = "Год издания", 
+     ylab = "Число игр", main="")
+```
+
+---
+## Число оценок по годам
+```{r sumscorecountbydate, fig.width=10}
+sum_score_count_by_date <- aggregate(cbind(critics_reviews_count, user_reviews_count) ~ format(release_date, "%Y"), data = games, sum) 
+names(sum_score_count_by_date)[1] <- "year"
+mdf <- melt(sum_score_count_by_date, value.name = "sum_score_count")
+ggplot(data=mdf, aes(x=year, y=sum_score_count, group = variable, fill = variable)) + 
+geom_bar(stat = 'identity', position = 'dodge') + theme_bw() + 
+theme(axis.text.x = element_text(angle = 45, hjust = 1, size=15)) + 
+xlab("Год издания") + ylab("Число рецензий")  
+```
+
+---
 ## Медианы оценок по годам
 ```{r medianscoresbydate, fig.width=10}
 median_scores_by_date <- aggregate(cbind(metascore, user_score) ~ 
@@ -131,6 +150,22 @@ xlab("Издатель") + ylab("Медиана ОК - Медиана ОП") + g
 ```{r scorediffdistrib}
 score_difference <- transform(games, scorediff = metascore-user_score, 
 metascore=NULL, user_score=NULL)
+
+par(mar=c(5,4,0,2)+0.1)
 plot(density(na.omit(score_difference$scorediff)), xlab = "ОК-ОП", ylab="Плотность",
      main="", cex.lab=1.5, cex.axis=1.5, cex.main=1.5, cex.sub=1.5, lwd=2)
 ```
+
+---
+## Выводы
+* Наблюдается статистически значимая разница между ОП и ОК
+* Год выпуска игры и её оценка отрицательно коррелируют
+* Зашумленность, отсутствие формального контроля данных
+
+--- {
+ tpl: thankyou,
+  social: [{title: Файл, href: "is.gd/metacritic_xls"}, {title: Код, href: "is.gd/metacritic_code"}, {title: email, href: "dmitry.velikij@gmail.com"}]
+  }
+
+## Спасибо за внимание
+
