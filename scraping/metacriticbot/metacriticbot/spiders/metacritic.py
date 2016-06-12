@@ -63,7 +63,7 @@ class MetacriticSpider(Spider):
         sel = Selector(response, type = 'html')
         game = Game()
         # General info
-        game['title'] = safe_extract(sel, '//div[@class="product_title"]/a/span[@itemprop="name"]/text()')
+        game['title'] = safe_extract(sel, '//h1[@class="product_title"]/a/span[@itemprop="name"]/text()')
         game['link'] = response.url
         game['release_date'] = safe_extract(sel, '//span[@itemprop="datePublished"]/text()')
         game['developer'] = safe_extract(sel, '//li[@class="summary_detail developer"]/span[@class="data"]/text()')
